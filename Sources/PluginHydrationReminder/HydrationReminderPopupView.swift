@@ -1,8 +1,11 @@
 import SwiftUI
 
-struct HydrationReminderPopupView: View {
+public struct HydrationReminderPopupView: View {
     @ObservedObject private var manager = HydrationReminderManager.shared
-    var body: some View {
+
+    public init() {}
+
+    public var body: some View {
         VStack(spacing: 0) {
             HStack {
                 Image(systemName: "drop.fill")

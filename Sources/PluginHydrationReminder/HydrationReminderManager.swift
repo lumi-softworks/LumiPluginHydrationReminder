@@ -90,6 +90,8 @@ class HydrationReminderManager: NSObject, ObservableObject, SuperLog {
         self.isActive = true
         environment.saveActiveState(true, forKey: activeStateKey)
         self.startTime = environment.now()
+        // iOS 后台到点提醒只能靠本地通知，首次开启时请求授权。
+        environment.requestNotificationAuthorization()
         scheduleNextBreak()
     }
 
@@ -102,11 +104,11 @@ class HydrationReminderManager: NSObject, ObservableObject, SuperLog {
         guard isActive else { return }
         environment.cancel(timer)
         timer = nil
+        environment.cancelNotification(kind: .hydration)
         isActive = false
         environment.saveActiveState(false, forKey: activeStateKey)
         nextBreakTime = nil
         startTime = nil
-        // UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
 
     func snooze(minutes: Int) {
@@ -164,15 +166,26 @@ class HydrationReminderManager: NSObject, ObservableObject, SuperLog {
     }
 
     private func scheduleNextBreak() {
-        scheduleBreak(in: selectedInterval)
+        scheduleBreak(in: selectedInterval, repeats: true)
     }
 
-    private func scheduleBreak(in interval: TimeInterval) {
+    private func scheduleBreak(in interval: TimeInterval, repeats: Bool = false) {
         environment.cancel(timer)
         nextBreakTime = environment.now().addingTimeInterval(interval)
         timer = environment.schedule(after: interval) { [weak self] in
             self?.fireBreakReminder()
         }
+        environment.scheduleNotification(
+            kind: .hydration,
+            after: interval,
+            repeats: repeats,
+            title: String(localized: "Hydration", table: "HydrationReminder", bundle: .module),
+            body: String(
+                localized: "Don't forget to drink some water!",
+                table: "HydrationReminder",
+                bundle: .module
+            )
+        )
     }
 
     private func fireBreakReminder() {
