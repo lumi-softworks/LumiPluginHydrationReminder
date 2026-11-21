@@ -29,11 +29,11 @@ struct HydrationSettingsView: View {
                             }
                         }
                         if option != manager.availableIntervals.last {
-                            Divider().padding(.vertical, 8)
+                            rowDivider
                         }
                     }
 
-                    Divider().padding(.vertical, 8)
+                    rowDivider
 
                     AppSettingRow(
                         title: String(localized: "Add Custom (minutes):", table: "HydrationReminder", bundle: .module),
@@ -44,6 +44,9 @@ struct HydrationSettingsView: View {
                             TextField("", value: $customMinutes, format: .number)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 64)
+                                #if os(iOS)
+                                .keyboardType(.numberPad)
+                                #endif
                                 .accessibilityIdentifier("wakey.hydration.custom-interval.minutes")
                                 .onSubmit { addCustomInterval() }
                             AppButton(systemImage: "plus", style: .secondary, action: addCustomInterval)
@@ -52,7 +55,7 @@ struct HydrationSettingsView: View {
                         }
                     }
 
-                    Divider().padding(.vertical, 8)
+                    rowDivider
 
                     AppSettingRow(
                         title: String(localized: "Reset to Default Intervals", table: "HydrationReminder", bundle: .module),
@@ -88,6 +91,15 @@ struct HydrationSettingsView: View {
             return "\(mins / 60) hr"
         }
         return "\(mins) min"
+    }
+
+    /// iOS 的卡片行自带发丝分隔线；macOS 的分组卡片需要显式分隔线。
+    @ViewBuilder
+    private var rowDivider: some View {
+        #if os(macOS)
+        Divider()
+            .padding(.vertical, 8)
+        #endif
     }
 }
 
