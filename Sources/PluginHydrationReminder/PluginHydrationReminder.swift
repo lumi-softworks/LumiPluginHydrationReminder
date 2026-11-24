@@ -2,6 +2,7 @@ import KernelCore
 import OSLog
 import ProviderDocsView
 import ProviderMenuBar
+import ProviderMobileTabBar
 import ProviderStorage
 import ProviderSettingView
 import SwiftUI
@@ -16,13 +17,18 @@ public final class PluginHydrationReminder: SuperPlugin {
     public let metadata: PluginMetadata
     nonisolated let logger: Logger
 
+    /// iOS 底部标签页 id。宿主沿用旧选中项时可注入历史值。
+    public let mobileTabID: String
+
     public init(
         id: String = PluginHydrationReminder.defaultPluginID,
         order: Int = 10,
-        policy: PluginEnablePolicy = .enabledByDefault
+        policy: PluginEnablePolicy = .enabledByDefault,
+        mobileTabID: String? = nil
     ) {
         self.id = id
         self.order = order
+        self.mobileTabID = mobileTabID ?? "\(id).mobile"
         self.metadata = PluginMetadata(
             id: id,
             name: String(localized: "Hydration", table: "HydrationReminder", bundle: .module, comment: "Name of the hydration reminder plugin"),
@@ -49,6 +55,7 @@ public final class PluginHydrationReminder: SuperPlugin {
         }
 
         try contributeMenuBar(to: kernel)
+        try contributeMobileTab(to: kernel)
 
         // 设置页标签
         kernel.resolveProvider((any SettingViewProviding).self)?
@@ -64,6 +71,7 @@ public final class PluginHydrationReminder: SuperPlugin {
 
     public func onEnable(kernel: KernelCoreContainer) async throws {
         try contributeMenuBar(to: kernel)
+        try contributeMobileTab(to: kernel)
     }
 
     public func onShutdown(kernel: KernelCoreContainer) throws {
@@ -88,5 +96,26 @@ public final class PluginHydrationReminder: SuperPlugin {
         ) {
             HydrationReminderPopupView()
         })
+    }
+
+    /// 往 iOS 底部标签页插入本插件的整页 UI；macOS 无此注册表，自动跳过。
+    private func contributeMobileTab(to kernel: KernelCoreContainer) throws {
+        guard let tabs = kernel.resolveProvider((any MobileTabBarProviding).self) else { return }
+        let ownerID = id
+        try kernel.trackContribution {
+            tabs.removeItems(ownedBy: ownerID)
+        }
+        let prefix = id
+        tabs.addItems([
+            MobileTabBarItem(
+                id: mobileTabID,
+                title: metadata.name,
+                systemImage: "drop.fill",
+                order: order,
+                ownerPluginID: id
+            ) {
+                AnyView(HydrationMobileView(accessibilityIdentifierPrefix: prefix))
+            }
+        ])
     }
 }

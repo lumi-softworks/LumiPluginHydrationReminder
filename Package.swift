@@ -17,7 +17,7 @@ let package = Package(
         .package(url: "https://github.com/lumi-softworks/LumiKernel.git", from: "1.1.0"),
         .package(url: "https://github.com/lumi-softworks/LumiSettings.git", from: "1.1.0"),
         .package(url: "https://github.com/lumi-softworks/LumiUI.git", from: "1.12.0"),
-        .package(url: "https://github.com/lumi-softworks/LumiProviders.git", from: "1.26.0")
+        .package(url: "https://github.com/lumi-softworks/LumiProviders.git", from: "1.28.0"),
     ],
     targets: [
         .target(
@@ -30,7 +30,8 @@ let package = Package(
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderMenuBar", package: "LumiProviders"),
-                .product(name: "ProviderStorage", package: "LumiProviders")
+                .product(name: "ProviderStorage", package: "LumiProviders"),
+                .product(name: "ProviderMobileTabBar", package: "LumiProviders")
             ],
             path: "Sources/PluginHydrationReminder",
             resources: [.process("../../Resources/HydrationReminder.xcstrings")]
